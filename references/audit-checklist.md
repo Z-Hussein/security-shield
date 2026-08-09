@@ -15,7 +15,7 @@ git grep -i "api_key\|password\|secret\|token" -- "*.py" "*.js" "*.env"
 find /path/to/project -perm -002 -type f
 
 # 3. Check for hardcoded credentials
-grep -r "sk-\|ghp_\|Bearer " --include="*.py" --include="*.js" .
+grep -r "<secret_prefix>" --include="*.py" --include="*.js" .  # pattern only - never test against real systems
 
 # 4. Verify .gitignore excludes secrets
 cat .gitignore | grep -E "\.env|secrets|keys"
@@ -185,66 +185,6 @@ Use before trusting or executing anything obtained from outside the system.
 
 ---
 
-## Penetration Testing Guide
-
-### Reconnaissance
-```bash
-# Port scanning (only on systems you own/have permission for)
-nmap -sV -sC target.com
-
-# Directory enumeration
-gobuster dir -u https://target.com -w /usr/share/wordlists/dirb/common.txt
-
-# Subdomain enumeration
-subfinder -d target.com
-```
-
-### Common Tests
-1. **SQL Injection**: `' OR '1'='1` in form fields
-2. **XSS**: `<script>alert(1)</script>` in inputs
-3. **Path Traversal**: `../../../etc/passwd` in file params
-4. **Command Injection**: `; cat /etc/passwd` in command fields
-5. **SSRF**: Internal URLs in webhook/callback params
-
-### Tools (use responsibly, only on authorized systems)
-- Burp Suite (web proxy)
-- OWASP ZAP (web scanner)
-- sqlmap (SQL injection)
-- nmap (port scanning)
-- john (password cracking)
-
-**⚠️ Legal Warning:** Only test systems you own or have explicit written permission to test. Unauthorized testing is illegal.
-
----
-
-## Incident Response Checklist
-
-### If Compromised
-1. **Contain**: Isolate affected systems
-2. **Assess**: Determine scope of breach
-3. **Rotate**: Revoke all potentially exposed credentials
-4. **Notify**: Inform affected users (if PII exposed)
-5. **Patch**: Fix the vulnerability
-6. **Restore**: From clean backups if needed
-7. **Review**: Post-mortem and prevent recurrence
-
-### Credential Rotation Priority
-1. Database passwords
-2. API keys (internal and external)
-3. SSH keys
-4. Service account tokens
-5. User sessions (force re-auth)
-
----
-
-## Security Metrics to Track
-
-- Mean time to detect (MTTD)
-- Mean time to respond (MTTR)
-- Vulnerability scan frequency
-- Patch deployment time
-- Security training completion
-- Phishing test click rates
 - Access review completion
 
 ---
