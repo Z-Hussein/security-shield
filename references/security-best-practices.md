@@ -299,10 +299,10 @@ echo "umask 027" >> /etc/profile
 ## Zero Trust Architecture
 
 ### Core Principles
-- **Never trust, always verify** — every request is authenticated regardless of origin
-- **Least privilege** — access is granted per-request, not per-network
-- **Assume breach** — design for containment, not prevention alone
-- **Verify explicitly** — identity, device, and context checked on every call
+- **Never trust, always verify** - every request is authenticated regardless of origin
+- **Least privilege** - access is granted per-request, not per-network
+- **Assume breach** - design for containment, not prevention alone
+- **Verify explicitly** - identity, device, and context checked on every call
 
 ### Implementation Layers
 - Identity: strong auth (FIDO2, passkeys), continuous verification
@@ -332,7 +332,7 @@ echo "umask 027" >> /etc/profile
 - **Level 1**: provenance generated (who built what)
 - **Level 2**: provenance hosted and signed
 - **Level 3**: reproducible, tamper-resistant build
-- **Level 4**: highest — two-person review, hermetic builds
+- **Level 4**: highest - two-person review, hermetic builds
 
 ### Signature & Attestation Tooling
 - **sigstore / cosign**: sign container images and binaries without managing keys
