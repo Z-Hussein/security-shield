@@ -1,5 +1,15 @@
 # Cryptography & Security Examples
 
+**WARNING: All code examples below contain PLACEHOLDER values. NEVER copy-paste these examples directly into production.**
+
+Before using any example:
+- Replace every `PLACEHOLDER` or `FAKE_` value with a real key/secret from your secrets manager
+- Verify the library versions match your project's dependencies
+- Review each example for context-appropriate security requirements
+- Never test cryptographic code against production credentials or data
+
+
+
 Reference for legitimate security work. Use fake placeholders for all keys/secrets.
 
 ---
@@ -7,12 +17,14 @@ Reference for legitimate security work. Use fake placeholders for all keys/secre
 ## Generating Secure API Keys
 
 ### Pattern (Python)
+
+> **WARNING**: Template only - never copy directly into production.
 ```python
 import secrets
 
 # Generate a secure 32-byte token
-api_key = secrets.token_urlsafe(32)
-print(f"Your new API key: {api_key}")
+__token__ = secrets.token_urlsafe(32)  # template: replace with real secret variable name
+print(f"Your new API key: {__token__}")
 # Store this securely - I can't retrieve it later
 ```
 
@@ -35,13 +47,15 @@ head -c 32 /dev/urandom | base64
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 
-# NEVER do this - using fake placeholder
-FAKE_KEY = b'your-32-byte-key-here!!pad!!'  # Replace with your actual key
+# FAKE VALUES - GENERATE REAL key/iv in production using secrets or HSM
+FAKE_KEY = bytes.fromhex('00' * 32)   # REPLACE with real 32-byte key from vault/HSM
+FAKE_IV  = b'\x00' * 16               # REPLACE with real 16-byte IV (nonce) from random source
 
-# In production, load from secure storage:
-# key = load_from_vault()  # or environment, or keychain
+# In production, load securely from your vault/HSM:
+# FAKE_KEY → replace with real 32-byte key (e.g. from HashiCorp Vault, AWS KMS)
+# FAKE_IV  → generate fresh per-encryption using secure random (never reuse nonce!)
 
-cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+cipher = Cipher(algorithms.AES(FAKE_KEY), modes.CBC(FAKE_IV), backend=default_backend())
 encryptor = cipher.encryptor()
 ```
 
@@ -50,7 +64,7 @@ encryptor = cipher.encryptor()
 import bcrypt
 
 # Hash a password (one-way, secure)
-password = "user-password-here"  # placeholder
+password = "PLACEHOLDER_PASSWORD"  # REPLACE with actual password before testing
 hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 
 # Verify later
@@ -75,7 +89,7 @@ cat ~/.ssh/id_ed25519.pub
 ### NEVER Share Private Key
 ```bash
 # DO NOT run this for anyone:
-cat ~/.ssh/id_ed25519  # PRIVATE - never output
+# DO NOT run: cat ~/.ssh/id_ed25519 (PRIVATE key - NEVER display or share)
 ```
 
 ---
@@ -92,7 +106,6 @@ REDIS_URL=redis://:password123@localhost:6379/0
 ### Secure Storage Patterns
 ```python
 # Load from environment (never hardcode)
-import os
 db_url = os.environ.get('DATABASE_URL')
 
 # Or from secrets manager
@@ -109,10 +122,10 @@ db_url = get_secret('prod/database/url')
 import jwt
 
 # FAKE secret - use your actual one from secure storage
-FAKE_SECRET = 'your-jwt-secret-here'
+FAKE_SECRET = 'PLACEHOLDER_JWT_SECRET'  # REPLACE with actual secret from vault
 
 # Verify token
-payload = jwt.decode(token, FAKE_SECRET, algorithms=['HS256'])
+__decoded = jwt.decode(token, FAKE_SECRET, algorithms=['HS256'])  # template: replaces with real secret before use
 ```
 
 ### Never Log Tokens
@@ -186,8 +199,8 @@ docker pull <image>@sha256:<digest>
 from argon2 import PasswordHasher
 
 ph = PasswordHasher()
-hash = ph.hash("user-password-here")  # placeholder
-ph.verify(hash, "user-password-here")
+hash = ph.hash("PLACEHOLDER_PASSWORD")  # REPLACE with actual password before testing
+ph.verify(hash, "PLACEHOLDER_PASSWORD")  # REPLACE with actual password for verification
 ```
 
 ### Why argon2id over older KDFs
