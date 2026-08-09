@@ -4,7 +4,8 @@
 
 | Version | Supported |
 |---------|-----------|
-| 2.0.x   | ✅ Yes    |
+| 2.1.x   | ✅ Yes    |
+| 2.0.x   | ❌ No     |
 | 1.2.x   | ❌ No     |
 | 1.1.x   | ❌ No     |
 | 1.0.x   | ❌ No     |
@@ -49,8 +50,8 @@ This skill follows these security practices:
 
 - Security Shield guides agent behavior but cannot override compromised agent instructions
 - The skill does not scan other skills for malware (use Skill Vetter for that)
-- Logging depends on OpenClaw's logging infrastructure
-- The skill ships no code or runtime settings; it does not write its own log files. During an explicitly requested full-system check, the agent may inspect local state within the agreed scope (see USAGE-GUIDE.md)
+- Security events are recorded via threat-handling rules in SKILL.md: events are written to memory/YYYY-MM-DD.md (event metadata only - never raw payloads). Quarantined files go to $HOME/.security-shield/quarantine/ (requires user approval first). The skill does NOT write to host system logs (syslog, journald, etc.); all event recording is within the agent's own workspace.
+- During an explicitly requested full-system check, the agent may inspect local state within the agreed scope (see USAGE-GUIDE.md)
 
 ## Related Resources
 
