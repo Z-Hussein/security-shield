@@ -30,6 +30,17 @@ Copy the `SKILL.md` file and `references/` folder into the agent's skills direct
 
 ---
 
+## ⚠️ Bootstrap Trust Note (Same as README)
+
+Security Shield practices what it preaches. Before installing:
+1. **Inspect SKILL.md** - read it yourself first; don't trust an install command to verify a file you haven't reviewed
+2. **Verify ClawHub metadata** - check the publisher (`@z-hussein`) and skill card for authenticity
+3. **Compare checksums** between GitHub and ClawHub versions of SKILL.md
+4. **Apply scoped** - only add it to your agent's skills, not system-wide
+5. **Observe behavior** on first few uses to confirm the principles work as documented
+
+---
+
 ## Verified Install
 
 Follow this checklist before installing anything:
@@ -136,6 +147,41 @@ For host-level hardening and audits, pair it with healthcheck; for scanning skil
 
 ---
 
+## What This Skill Cannot Do
+
+Security Shield embeds behavioral rules into the agent's decision-making. It is **not a security product** and cannot replace environment-level hardening.
+
+### Required Environmental Guarantees
+
+For Security Shield to be effective against untrusted content, the following guarantees should be in place:
+
+| Guarantee | Why It Matters | How to Implement |
+|-----------|---------------|------------------|
+| **Non-root user** | Root access lets anything bypass sandbox boundaries | Run your agent as a dedicated non-privileged user |
+| **Container isolation** for untrusted workloads | Containers are the only reliable way to contain root-level processes | `docker run --network=none --read-only --tmpfs /tmp` |
+| **No network egress from sandbox** | Prevents exfiltration even if the agent is compromised | Docker `--network=none`; OS firewall rules; MAC frameworks (AppArmor, SELinux) |
+| **Credentials in a vault, not in context** | A compromised agent with secrets exfiltrates everything | Use HashiCorp Vault, Doppler, or similar; never load secrets into the sandbox |
+| **OS-level file protection on skill files** | Prevents supply-chain tampering via file modification | `chown root:root` + `chmod a-w` on SKILL.md and key workspace files |
+| **Append-only anomaly log** | Detects takeovers even if the agent is coerced | `$HOME/.security-shield/anomalies.log` with `chattr +a` (Linux) |
+
+### Explicitly Not Covered
+
+- **Malware detection** - Security Shield does not scan files for known malware signatures; pair with ClamAV, Trivy, or similar.
+- **Network intrusion prevention** - Use a firewall (ufw, iptables, Windows Defender Firewall), IDS/IPS, and network segmentation.
+- **Credential rotation** - Change passwords and keys periodically regardless of this skill.
+- **Memory protection** - This is the agent's responsibility; use platform-level memory safety features where available.
+- **Physical security** - Protect your hardware, boot process, and secure enclaves independently.
+
+### Minimum Safe Configuration
+
+If you plan to run an untrusted or hypothetical model through Security Shield:
+
+1. **Do NOT give it:** root access, network access, credential store access, or skill-file write permissions
+2. **DO ensure:** runs in a container with no egress, secrets stored in a vault, and workspace files protected with `chown root:root` and `chmod a-w`
+3. **Monitor:** the anomaly log for tripwire hits; review daily memory logs for unexplained events
+
+---
+
 ## Response Examples
 
 ### Download Request
@@ -166,7 +212,7 @@ No conflicts with standard security tools.
 
 ## Logging
 
-Security events are recorded through the host's logging infrastructure so they can be reviewed. The skill itself writes no log files.
+Security events are recorded via threat-handling rules in SKILL.md: threat events are logged to memory/YYYY-MM-DD.md (event metadata only - never raw payloads). Quarantined files go to $HOME/.security-shield/quarantine/ (requires mkdir first). The skill does NOT write to host system logs (syslog, journald, etc.); all event recording is within the agent's own workspace.
 
 ---
 
