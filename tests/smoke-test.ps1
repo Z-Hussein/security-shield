@@ -46,13 +46,13 @@ catch {
 $skill = Get-Content -Raw -LiteralPath (Join-Path $root 'SKILL.md')
 Assert ($skill -match '(?ms)^---\r?\nname:\s*security-shield\r?\n') "SKILL.md frontmatter name is 'security-shield'"
 $principleCount = ([regex]::Matches($skill, '(?m)^## Principle ')).Count
-Assert ($principleCount -eq 13) "SKILL.md contains 13 principles (found $principleCount)"
+Assert ($principleCount -eq 16) "SKILL.md contains 16 principles (found $principleCount)"
 
 # 4. README lists the same principle set
 $readme = Get-Content -Raw -LiteralPath (Join-Path $root 'README.md')
-$principleSection = [regex]::Match($readme, '(?ms)## 📋 The 13 Security Principles.*?\n1\. \*\*.*?\n12\. \*\*.*?\n13\. \*\*[^\n]*').Value
+$principleSection = [regex]::Match($readme, '(?ms)## 📋 The 16 Security Principles(.*?)---').Value
 $readmePrinciples = ([regex]::Matches($principleSection, '(?m)^\d+\. \*\*')).Count
-Assert ($readmePrinciples -eq 13) "README lists 13 principles (found $readmePrinciples)"
+Assert ($readmePrinciples -eq 16) "README lists 16 principles (found $readmePrinciples)"
 
 # 5. Version alignment across metadata and docs
 $change = Get-Content -Raw -LiteralPath (Join-Path $root 'CHANGELOG.md')
@@ -99,6 +99,16 @@ if ($skillMatch.Success) {
 }
 else {
     Assert $false "SKILL.md frontmatter name+description parseable (Agent Skills standard)"
+}
+
+# 11. SKILL.md integrity anchor file exists and checksum validates
+$shaFile = Join-Path $root 'SKILL.md.sha256'
+Assert (Test-Path -LiteralPath $shaFile) "SKILL.md.sha256 companion file exists"
+try {
+    $shaContent = Get-Content -Raw -LiteralPath $shaFile
+    Assert ($shaContent -match '[a-f0-9]{64}\s+SKILL\.md') "SKILL.md.sha256 contains valid SHA-256 format"
+} catch {
+    Assert $false "SKILL.md.sha256 is readable and well-formed ($($_.Exception.Message))"
 }
 
 if ($failures.Count -gt 0) {
