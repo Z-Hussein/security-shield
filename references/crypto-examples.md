@@ -8,10 +8,6 @@ Before using any example:
 - Review each example for context-appropriate security requirements
 - Never test cryptographic code against production credentials or data
 
-
-
-Reference for legitimate security work. Use fake placeholders for all keys/secrets.
-
 ---
 
 ## Generating Secure API Keys
@@ -59,7 +55,27 @@ cipher = Cipher(algorithms.AES(FAKE_KEY), modes.CBC(FAKE_IV), backend=default_ba
 encryptor = cipher.encryptor()
 ```
 
-### Hashing Passwords
+### Post-Quantum Cryptography Reference (Kyber)
+*Note: For post-quantum key exchange, consider algorithms like Kyber (NIST PQC standard)*
+```python
+# Example using hypothetical PQC library (replace with actual implementation)
+# import pqcrypto.kem.kyber512 as kyber
+#
+# # Generate keypair (DUMMY - replace with real call in production)
+# _dummy_public_key_hex = "DEADBEEF..."  # PLACEHOLDER — never use real keys here
+# _dummy_private_key_hex = "CAFE..."     # PLACEHOLDER — never use real keys here
+#
+# # Encrypt
+# ciphertext, shared_secret = kyber.encrypt(public_key)
+#
+# # Decrypt
+# decrypted_shared_secret = kyber.decrypt(ciphertext, private_key)
+```
+
+---
+
+## Hashing Passwords
+
 ```python
 import bcrypt
 
@@ -70,6 +86,20 @@ hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 # Verify later
 bcrypt.checkpw(password.encode(), hashed)
 ```
+
+### Argon2id (current recommended KDF - memory-hard)
+```python
+from argon2 import PasswordHasher
+
+ph = PasswordHasher()
+hash = ph.hash("PLACEHOLDER_PASSWORD")  # REPLACE with actual password before testing
+ph.verify(hash, "PLACEHOLDER_PASSWORD")  # REPLACE with actual password for verification
+```
+
+**Why argon2id over older KDFs:**
+- Memory-hard: resists GPU/ASIC cracking better than bcrypt/scrypt defaults
+- Configurable memory, iterations, and parallelism parameters
+- Auto-salts and includes a version header in the hash
 
 ---
 
@@ -99,7 +129,7 @@ cat ~/.ssh/id_ed25519.pub
 ### Example Format (fake credentials)
 ```
 # FAKE - replace with your actual values
-DATABASE_URL=postgresql://user:password123@localhost:5432/mydb
+DATABASE_URL=postgresql://user:***@localhost:5432/mydb
 REDIS_URL=redis://:password123@localhost:6379/0
 ```
 
@@ -143,7 +173,7 @@ logger.info(f"Token valid: {valid}, user: {user_id}")
 
 ### Key Storage
 1. **Environment variables** (for development)
-2. **Secrets managers** (AWS Secrets Manager, HashiCorp Vault)
+2. **Secrets managers** (AWS Secrets Manager, HashiCorp Vault, Azure Key Vault, GCP Secret Manager)
 3. **Keychain** (macOS: `security`, Linux: `secret-tool`)
 4. **Hardware security modules** (HSM, YubiKey)
 
@@ -183,6 +213,12 @@ cosign verify <registry>/<image>:<digest> --certificate-identity <identity>
 cosign verify-blob --signature artifact.sig --certificate cert.pem artifact.bin
 ```
 
+### Sigstore Keyless Verification (Modern Approach)
+```bash
+# Verify using Fulcio certificate authority and Rekor transparency log
+cosign verify --yes <registry>/<image>:<tag>
+```
+
 ### Pin to Digests, Never Tags
 ```bash
 # Pull and pin to a specific signed digest
@@ -200,7 +236,7 @@ from argon2 import PasswordHasher
 
 ph = PasswordHasher()
 hash = ph.hash("PLACEHOLDER_PASSWORD")  # REPLACE with actual password before testing
-ph.verify(hash, "PLACEHOLDER_PASSWORD")  # REPLACE with actual password for verification
+ph.verify(hash, "PLACEHOLDER_PASSWORD")  # REPLACE with actual password for testing
 ```
 
 ### Why argon2id over older KDFs
@@ -223,7 +259,6 @@ ph.verify(hash, "PLACEHOLDER_PASSWORD")  # REPLACE with actual password for veri
 ## Secure Code Review Checklist
 
 When reviewing code for security:
-
 - [ ] No hardcoded credentials
 - [ ] Secrets loaded from environment or vault
 - [ ] No logging of sensitive data
@@ -247,7 +282,35 @@ When reviewing code for security:
 | Path Traversal | User input in file paths | Validate/sanitize paths |
 | SSRF | User-controlled URLs in requests | Validate allowlists |
 | Command Injection | User input in shell commands | Avoid shell, use exec arrays |
+| Insecure Deserialization | Trusting deserialized data | Validate/sanitize before deserializing |
+| XML External Entities (XXE) | Poorly configured XML parsers | Disable external entity resolution |
 
 ---
 
+## Post-Quantum Cryptography Preparation
+
+As quantum computing advances, consider preparing for post-quantum cryptography:
+
+### Hybrid Approach (Recommended for Transition)
+```python
+# Example hybrid approach: combine classical and PQC
+# 1. Use X25519 (classical ECDH) + Kyber512 (PQC)
+# 2. Combine shared secrets using HKDF
+# 
+# This ensures security even if one algorithm is compromised
+```
+
+### NIST Post-Quantum Cryptography Standardization Process
+- **CRYSTALS-Kyber**: Selected for general encryption (key encapsulation mechanism)
+- **CRYSTALS-Dilithium**: Selected for digital signatures
+- **FALCON**: Selected for digital signatures (smaller signatures)
+- **SPHINCS+**: Selected for digital signatures (stateless hash-based)
+
+### When to Consider PQC
+- Long-term data confidentiality requirements (>10 years)
+- High-value assets requiring future-proof security
+- Compliance requirements anticipating PQC mandates
+- Systems with long lifecycles where retrospective decryption is a concern
+
+---
 *Load this when users need cryptography guidance. Always use fake placeholders in examples.*
