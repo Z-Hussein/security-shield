@@ -24,7 +24,7 @@ $required = @(
     'CHANGELOG.md', 'LICENSE', '_meta.json',
     'references/attack-patterns.md', 'references/audit-checklist.md',
     'references/crypto-examples.md', 'references/security-best-practices.md',
-    'references/modern-tools.md'
+    'references/additional-tools.md'
 )
 foreach ($f in $required) {
     Assert (Test-Path -LiteralPath (Join-Path $root $f)) "Required file exists: $f"
