@@ -46,13 +46,13 @@ catch {
 $skill = Get-Content -Raw -LiteralPath (Join-Path $root 'SKILL.md')
 Assert ($skill -match '(?ms)^---\r?\nname:\s*security-shield\r?\n') "SKILL.md frontmatter name is 'security-shield'"
 $principleCount = ([regex]::Matches($skill, '(?m)^## Principle ')).Count
-Assert ($principleCount -eq 16) "SKILL.md contains 16 principles (found $principleCount)"
+Assert ($principleCount -eq 20) "SKILL.md contains 20 principles (found $principleCount)"
 
 # 4. README lists the same principle set
 $readme = Get-Content -Raw -LiteralPath (Join-Path $root 'README.md')
 $principleSection = [regex]::Match($readme, '(?ms)## 📋 The 16 Security Principles(.*?)---').Value
 $readmePrinciples = ([regex]::Matches($principleSection, '(?m)^\d+\. \*\*')).Count
-Assert ($readmePrinciples -eq 16) "README lists 16 principles (found $readmePrinciples)"
+Assert ($readmePrinciples -eq 20) "README lists 20 principles (found $readmePrinciples)"
 
 # 5. Version alignment across metadata and docs
 $change = Get-Content -Raw -LiteralPath (Join-Path $root 'CHANGELOG.md')
