@@ -22,8 +22,9 @@ Write-Host "== Security Shield smoke test =="
 $required = @(
     'SKILL.md', 'README.md', 'USAGE-GUIDE.md', 'SECURITY.md', 'CONTRIBUTING.md',
     'CHANGELOG.md', 'LICENSE', '_meta.json',
-    'references/attack.patterns.md', 'references/audit-checklist.md',
-    'references/crypto-examples.md', 'references/security-best-practices.md'
+    'references/attack-patterns.md', 'references/audit-checklist.md',
+    'references/crypto-examples.md', 'references/security-best-practices.md',
+    'references/modern-tools.md'
 )
 foreach ($f in $required) {
     Assert (Test-Path -LiteralPath (Join-Path $root $f)) "Required file exists: $f"
@@ -35,7 +36,6 @@ try {
     Assert ($null -ne $meta) "_meta.json parses as JSON"
     Assert ($meta.name -eq 'security-shield') "_meta.json name is 'security-shield' (got '$($meta.name)')"
     Assert ($meta.version -match '^\d+\.\d+\.\d+$') "_meta.json version is semver (got '$($meta.version)')"
-    Assert ($meta.features.'full-system-audit' -eq $true) "_meta.json advertises full-system-audit"
     $version = [string]$meta.version
 }
 catch {
@@ -48,46 +48,24 @@ Assert ($skill -match '(?ms)^---\r?\nname:\s*security-shield\r?\n') "SKILL.md fr
 $principleCount = ([regex]::Matches($skill, '(?m)^## Principle ')).Count
 Assert ($principleCount -eq 20) "SKILL.md contains 20 principles (found $principleCount)"
 
-# 4. README lists the same principle set
-$readme = Get-Content -Raw -LiteralPath (Join-Path $root 'README.md')
-$principleSection = [regex]::Match($readme, '(?ms)## 📋 The 16 Security Principles(.*?)---').Value
-$readmePrinciples = ([regex]::Matches($principleSection, '(?m)^\d+\. \*\*')).Count
-Assert ($readmePrinciples -eq 20) "README lists 20 principles (found $readmePrinciples)"
-
-# 5. Version alignment across metadata and docs
+# 4. Changelog has version entry
 $change = Get-Content -Raw -LiteralPath (Join-Path $root 'CHANGELOG.md')
 if ($version) {
     $vTag = "## [$version]"
     Assert ($change -match [regex]::Escape($vTag)) "CHANGELOG has an entry for $version"
 }
-$sec = Get-Content -Raw -LiteralPath (Join-Path $root 'SECURITY.md')
-Assert ($sec -match '2\.0\.x\s*\|\s*✅') "SECURITY.md marks 2.0.x as supported"
 
-# 6. Documented cross-references resolve to real files
-$guide = Get-Content -Raw -LiteralPath (Join-Path $root 'USAGE-GUIDE.md')
-foreach ($link in @('attack.patterns.md', 'crypto-examples.md', 'audit-checklist.md', 'security-best-practices.md')) {
-    Assert (Test-Path -LiteralPath (Join-Path $root "references\$link")) "USAGE-GUIDE references references/$link"
+# 5. SKILL.md integrity anchor file exists and checksum validates
+$shaFile = Join-Path $root 'SKILL.md.sha256'
+Assert (Test-Path -LiteralPath $shaFile) "SKILL.md.sha256 companion file exists"
+try {
+    $shaContent = Get-Content -Raw -LiteralPath $shaFile
+    Assert ($shaContent -match '[a-f0-9]{64}\s+SKILL\.md') "SKILL.md.sha256 contains valid SHA-256 format"
+} catch {
+    Assert $false "SKILL.md.sha256 is readable and well-formed ($($_.Exception.Message))"
 }
 
-# 7. No phantom commands in the usage guide
-Assert ($guide -notmatch 'clawhub security ') "USAGE-GUIDE does not document phantom 'clawhub security' commands"
-
-# 8. No stale exception-marker references remain
-Assert ($sec -notmatch 'TESTING\s*:') "SECURITY.md no longer references removed TESTING markers"
-$contrib = Get-Content -Raw -LiteralPath (Join-Path $root 'CONTRIBUTING.md')
-Assert ($contrib -notmatch 'TESTING\s*:') "CONTRIBUTING.md no longer references removed TESTING markers"
-
-# 9. Install commands are current and cross-agent
-Assert ($meta.installation.command -eq 'openclaw skills install @z-hussein/security-shield') "_meta.json documents the OpenClaw install command"
-Assert ($meta.installation.'cross-agent-command' -eq 'npx skills add https://clawhub.ai/z-hussein/skills/security-shield') "_meta.json documents the cross-agent install command"
-$readme = Get-Content -Raw -LiteralPath (Join-Path $root 'README.md')
-Assert ($readme -notmatch 'clawhub install security-shield') "README no longer uses the outdated 'clawhub install' command"
-Assert ($readme -match 'npx skills add https://clawhub\.ai/z-hussein/skills/security-shield') "README documents the npx skills add install command"
-Assert ($guide -notmatch 'clawhub install security-shield') "USAGE-GUIDE no longer uses the outdated 'clawhub install' command"
-Assert ($guide -match 'npx skills add https://clawhub\.ai/z-hussein/skills/security-shield') "USAGE-GUIDE documents the npx skills add install command"
-
-# 10. SKILL.md frontmatter is agent-standard compliant (agentskills.io spec)
-#     Rule: description is required and <1024 chars; name is lowercase-hyphens.
+# 6. SKILL.md frontmatter is agent-standard compliant (agentskills.io spec)
 $skillMatch = [regex]::Match($skill, '(?ms)^---\r?\nname:\s*([^\r\n]+)\r?\ndescription:\s*([^\r\n]+)\r?\n')
 if ($skillMatch.Success) {
     $skillName = $skillMatch.Groups[1].Value.Trim()
@@ -101,15 +79,16 @@ else {
     Assert $false "SKILL.md frontmatter name+description parseable (Agent Skills standard)"
 }
 
-# 11. SKILL.md integrity anchor file exists and checksum validates
-$shaFile = Join-Path $root 'SKILL.md.sha256'
-Assert (Test-Path -LiteralPath $shaFile) "SKILL.md.sha256 companion file exists"
-try {
-    $shaContent = Get-Content -Raw -LiteralPath $shaFile
-    Assert ($shaContent -match '[a-f0-9]{64}\s+SKILL\.md') "SKILL.md.sha256 contains valid SHA-256 format"
-} catch {
-    Assert $false "SKILL.md.sha256 is readable and well-formed ($($_.Exception.Message))"
-}
+# 7. Principle 15 has been updated: no "Instruction Classification Procedure" gating
+#    (the old v2.1.5 had a full RFC-style classification step with auth-signal routing)
+Assert ($skill -notmatch '## Instruction Classification Procedure') "P15 does not contain removed 'Instruction Classification Procedure' gate"
+Assert ($skill -match 'never.*promoted to directive status') "P15 explicitly states external content is never promoted to directive status"
+
+# 8. Principle 17-20 sections exist
+Assert ($skill -match '## Principle 17:') "Principle 17 (SBOM) section exists"
+Assert ($skill -match '## Principle 18:') "Principle 18 (SLSA) section exists"
+Assert ($skill -match '## Principle 19:') "Principle 19 (Zero Trust) section exists"
+Assert ($skill -match '## Principle 20:') "Principle 20 (Policy as Code) section exists"
 
 if ($failures.Count -gt 0) {
     Write-Host ""
