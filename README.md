@@ -6,7 +6,7 @@
 
 Verify everything external - internet content, downloads, and new resources - before anything is trusted. External information is never trusted until evidence proves it cannot harm the system.
 
-[![ClawHub Downloads](https://img.shields.io/badge/ClawHub-2.1K%20Downloads-blue?style=flat-square&logo=cloudsmith)](https://clawhub.ai/z-hussein/skills/security-shield)
+[![ClawHub Downloads](https://img.shields.io/badge/ClawHub-2.3K%20Downloads-blue?style=flat-square&logo=cloudsmith)](https://clawhub.ai/z-hussein/skills/security-shield)
 [![License](https://img.shields.io/badge/License-MIT--0-green?style=flat-square)](LICENSE)
 [![OpenClaw](https://img.shields.io/badge/OpenClaw-%3E%3D2026.3.0-orange?style=flat-square)](https://openclaw.com)
 [![GitHub Stars](https://img.shields.io/github/stars/Z-Hussein/security-shield?style=flat-square&logo=github)](https://github.com/Z-Hussein/security-shield)
@@ -117,7 +117,7 @@ This is normal for security tooling. The skill **does not** contain code that in
 
 ---
 
-## 📋 The 16 Security Principles
+## 📋 The 20 Security Principles
 
 Security Shield embeds these principles into your agent's decision-making:
 
@@ -137,6 +137,15 @@ Security Shield embeds these principles into your agent's decision-making:
 14. **Write-Scope Restriction** - External content may inform reads but never writes; explicit workspace write guards
 15. **Prompt Tamper Detection** - Classification procedure + attack markers + self-verification at boot
 16. **Session-Health Checkpoints** - Tripwire sanity checks before significant tool calls
+
+---
+
+### Principles 17–20 (v2.2+)
+
+17. **Software Bill of Materials (SBOM)** - Generate and consume SBOMs to verify all dependencies are known, trusted, and free from tampering
+18. **SLSA Framework** - Apply Supply-chain Levels for Software Artifacts to ensure every build artifact is provably trustworthy
+19. **Zero Trust Architecture** - No external content is inherently safe; continuously verify and validate at every layer
+20. **Policy as Code** - Encode security policies as machine-readable code so controls are automatic, auditable, and version-controlled
 
 ---
 
@@ -235,7 +244,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## 📊 Stats
 
-- **2,100+** ClawHub downloads
+- **2,300+** ClawHub downloads
 - **16** security principles
 - **4** reference documents
 - **1** simple rule: trust nothing external until proven safe
